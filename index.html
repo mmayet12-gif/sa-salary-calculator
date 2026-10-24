@@ -1,0 +1,28 @@
+<!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>SA Salary Calculator 2026/27</title>
+<meta name=description content="Take-home pay after PAYE, UIF, medical aid credits and retirement contributions, using SARS 2026/27 tables.">
+<style>:root{--bg:#fafbfc;--fg:#16202b;--mu:#5b6675;--ac:#1f56c2;--card:#fff;--ru:#dfe4ea}
+@media(prefers-color-scheme:dark){:root{--bg:#0e141a;--fg:#e6eaef;--mu:#9ba5b3;--ac:#8fb0ff;--card:#151d26;--ru:#263243}}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.5 system-ui,sans-serif}main{max-width:620px;margin:auto;padding:32px 16px}
+h1{margin:0 0 6px;font-size:clamp(28px,6vw,38px)}p.s{color:var(--mu);margin:0 0 20px}label{display:block;margin:14px 0 4px;font-weight:600}
+input,select{width:100%;box-sizing:border-box;padding:12px;border-radius:8px;border:1px solid var(--ru);background:var(--card);color:var(--fg);font:inherit}
+.out{margin-top:22px;background:var(--card);border:1px solid var(--ru);border-radius:12px;padding:16px}
+.big{font-size:32px;font-weight:700;color:var(--ac)}table{width:100%;border-collapse:collapse;margin-top:10px}td{padding:6px 0;border-bottom:1px solid var(--ru)}
+td:last-child{text-align:right;font-variant-numeric:tabular-nums}small{color:var(--mu)}</style>
+<main><h1>SA salary calculator</h1><p class=s>2026/27 tax year (1 March 2026 to 28 February 2027), using SARS tables.</p>
+<label for=g>Monthly gross salary (R)</label><input id=g type=number inputmode=decimal value=60000>
+<label for=r>Retirement fund contribution (% of salary)</label><input id=r type=number inputmode=decimal value=7.5>
+<label for=m>People on your medical aid</label><select id=m><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option></select>
+<label for=a>Medical aid premium you pay (R a month)</label><input id=a type=number inputmode=decimal value=0>
+<div class=out><div>Take-home a month</div><div class=big id=net>R0</div><table id=t></table>
+<small>Under 65, no other income or fringe benefits. Planning only; your payslip and SARS assessment are final.</small></div></main>
+<script>const T={"brackets": [[0, 0, 0.18], [245100, 44118, 0.26], [383100, 79998, 0.31], [530200, 125599, 0.36], [695800, 185215, 0.39], [887000, 259783, 0.41], [1878600, 666339, 0.45]], "rebate": 17820, "med": {"first_two_each": 376, "additional": 254}, "uif": {"rate": 0.01, "monthly_ceiling": 17712}, "ra": {"rate": 0.275, "annual_cap": 350000}};
+const f=v=>"R"+Math.round(v).toLocaleString("en-ZA").replace(/,/g," ");
+function tax(x){if(x<=0)return 0;let b=T.brackets[0];for(const r of T.brackets)if(x>r[0])b=r;return b[1]+(x-b[0])*b[2];}
+function calc(){const g=+$("g").value||0,rp=(+$("r").value||0)/100,m=+$("m").value,a=+$("a").value||0;
+const ra=g*rp,ded=Math.min(12*ra,T.ra.rate*12*g,T.ra.annual_cap);
+let y=tax(12*g-ded)-T.rebate-12*(T.med.first_two_each*Math.min(m,2)+T.med.additional*Math.max(m-2,0));y=Math.max(y,0);
+const paye=y/12,uif=T.uif.rate*Math.min(g,T.uif.monthly_ceiling),net=g-paye-uif-ra-a;
+$("net").textContent=f(net);
+$("t").innerHTML=[["Gross",g],["PAYE",-paye],["UIF",-uif],["Retirement fund",-ra],["Medical aid",-a]].map(r=>`<tr><td>${r[0]}</td><td>${f(r[1])}</td></tr>`).join("");}
+function $(i){return document.getElementById(i)}["g","r","m","a"].forEach(i=>$(i).addEventListener("input",calc));calc();</script></html>
